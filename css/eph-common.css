@@ -108,7 +108,6 @@ body {
 .timeline-figure img {
   width: 100%;
   border-radius: 4px;
-  border: 2px solid #eee;
 }
 
 .location-desc .location-name {
@@ -144,7 +143,7 @@ body {
 }
 
 .custom-popup .popup-date {
-  color: #b30000;
+  color: #bf9090;
   font-weight: bold;
   font-size: 0.9em;
 }
@@ -271,7 +270,6 @@ nav li.active a, nav li a.active {
 }
 
 .leaflet-popup-content img {
-  border: 2px solid white;
 }
 
 /* Kontrol Peta Tambahan */
