@@ -119,14 +119,27 @@ function getCollapsedY() {
     panel.classList.remove('eph-dragging');
   }
 
-  function handleViewportChange() {
+function handleViewportChange() {
     if (!panel) return;
+    
+    var detailsContainer = document.getElementById('details');
+
     if (isMobile()) {
       window.setMobilePanelExpanded(true, false);
+      
+      // Berikan padding gaib sebesar 50% layar + 20px spasi
+      if (detailsContainer) {
+        detailsContainer.style.paddingBottom = (window.innerHeight / 2 + 20) + 'px';
+      }
     } else {
       panel.style.transform = '';
       panel.classList.remove('eph-dragging');
       currentY = 0;
+      
+      // Hapus padding saat mode desktop
+      if (detailsContainer) {
+        detailsContainer.style.paddingBottom = '0px';
+      }
     }
   }
 
