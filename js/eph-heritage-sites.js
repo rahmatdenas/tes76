@@ -154,16 +154,34 @@ function formatWikidataDate(dateString, precision) {
 // ============================================================
 // LOGIKA NAVIGASI TAB (LINIMASA & TENTANG)
 // ============================================================
-window.addEventListener('hashchange', updateTabNavigation);
 window.addEventListener('load', updateTabNavigation);
+window.addEventListener('hashchange', updateTabNavigation);
+
+// Mencegat semua klik pada menu navigasi
+document.querySelectorAll('nav a').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault(); // KUNCI UTAMA: Matikan lompatan paksa bawaan browser
+    
+    let targetHash = this.getAttribute('href');
+    
+    // Ubah URL secara senyap tanpa memicu scroll/lompatan
+    if (history.pushState) {
+      history.pushState(null, null, targetHash);
+    } else {
+      window.location.hash = targetHash;
+    }
+    
+    // Jalankan fungsi ganti halaman secara manual
+    updateTabNavigation();
+  });
+});
 
 function updateTabNavigation() {
   // Ambil hash dari URL, atau gunakan #details sebagai bawaan
   let hash = window.location.hash || '#details';
   
-  // Sembunyikan semua konten panel
+  // Sembunyikan semua konten panel (kecuali animasi loading)
   document.querySelectorAll('.panel-content').forEach(el => {
-    // Abaikan elemen loading
     if(el.id !== 'loading') {
       el.style.display = 'none';
     }
@@ -180,7 +198,7 @@ function updateTabNavigation() {
     targetSection.style.display = 'block';
   }
 
-  // Beri warna aktif pada menu yang diklik
+  // Beri warna aktif pada menu yang sedang diklik
   let activeNav = document.querySelector('nav a[href="' + hash + '"]');
   if (activeNav) {
     activeNav.parentElement.classList.add('selected');
