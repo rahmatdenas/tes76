@@ -7,96 +7,114 @@
 
   body {
     position: relative;
+    display: block; /* Matikan flex bawaan desktop */
   }
 
-  #panel, #map {
+  /* --- 1. PETA (PALING BAWAH) --- */
+  #map {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    flex: none;
-  }
-
-  #map {
     z-index: 1;
   }
 
-#panel {
-    z-index: 500;
+  /* --- 2. SIDEBAR (PEMBUNGKUS TRANSPARAN) --- */
+  #sidebar {
+    position: absolute;
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+    z-index: 100;
+    pointer-events: none; /* KLIK MENEMBUS KE PETA */
+  }
+
+  /* --- 3. NAVIGASI (DI DASAR LAYAR) --- */
+  nav {
+    pointer-events: auto; /* Navigasi bisa diklik */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: #822; 
+    z-index: 101;
+    display: flex;
+    align-items: center;
+  }
+
+  nav ul {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+  }
+
+  /* --- 4. PANEL (DI ATAS NAVIGASI) --- */
+  #panel {
+    pointer-events: auto; /* Panel bisa diklik/didrag */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Tinggi Panel = 100% Layar dikurangi 50px Navigasi */
+    height: calc(100% - 50px);
+    z-index: 100;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+    background: #822;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     
-    /* TAMBAHAN KUNCI: */
-    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
   }
 
   #panel.eph-dragging {
     transition: none;
   }
 
-  /* ---------- Modifikasi Header (#branding) Menjadi Pegangan ---------- */
+  /* --- HEADER SEBAGAI PEGANGAN --- */
   #branding {
     position: relative;
-    touch-action: none;   /* Cegah browser scroll halaman saat header didrag */
+    touch-action: none;
     cursor: grab;
-    border-radius: 16px 16px 0 0;
-    padding-right: 40px;  /* Ruang agar teks tidak menabrak ikon panah */
+    padding: 10px 40px 10px 20px; /* Padding rapi */
+    flex-shrink: 0; /* Header jangan sampai menyusut */
   }
 
-  #branding:active {
-    cursor: grabbing;
+  #branding p {
+    margin: 0 0 5px 0;
+    font-size: 11px;
   }
 
-  /* Desain Ikon Panah (Injeksi JS) */
+  #branding h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+
+  /* Ikon Panah Injeksi */
   #panel-toggle {
     position: absolute;
     right: 20px;
     top: 50%;
-    margin-top: -2px;     /* Penyesuaian presisi vertikal */
+    margin-top: -2px;
     transform: translateY(-50%) rotate(0deg);
     font-size: 18px;
     color: #fff;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
 
-  /* ---------- Branding & Navigasi Lebih Ringkas ---------- */
-  #branding p {
-    margin-top: 5px; /* Sedikit disesuaikan agar proporsional */
-    font-size: 11px;
-  }
-
-  #branding h1 {
-    font-size: 20px;
-    margin-bottom: 5px;
-  }
-
-
-  /* ---------- Panel Detail ---------- */
+  /* --- KONTEN PANEL --- */
   #details,
   #about {
+    background: #fff;
     padding: 16px;
-    /* Pastikan bagian yang bisa di-scroll tidak mentok */
-    height: calc(100% - 130px); 
-    overflow-y: auto;
-    /* PERBAIKAN KUNCI: */
-    flex: 1;          /* Biarkan sistem Flexbox yang menghitung sisa ruangnya otomatis */
-    height: auto;     /* Hapus aturan height: calc(100% - 130px) lama yang tidak akurat */
-    overflow-y: auto; /* Pastikan scroll tetap aktif di dalam sini */
+    flex: 1;          /* Otomatis mengisi ruang sisa di bawah header */
+    overflow-y: auto; /* Scroll konten */
   }
 
-  /* ---------- Popup Peta ---------- */
   .leaflet-popup-content {
     font-size: 15px;
     line-height: 18px;
-  }
-}
-
-/* Ponsel berukuran sangat kecil */
-@media (max-width: 380px) {
-  #branding h1 {
-    font-size: 18px;
   }
 }
