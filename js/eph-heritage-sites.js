@@ -347,7 +347,7 @@ function fokusKeMarker(latlng, keepCurrentZoom = false, durasi = 1.2) {
   
   let koordinatAkhir = latlng;
 
-  // KHUSUS MOBILE (Layar <= 800px): Langsung geser target koordinat 20px ke atas
+  // KHUSUS MOBILE (Layar <= 800px): Geser target koordinat 20px ke atas
   if (window.innerWidth <= 800) {
     let targetPoint = Map.project(latlng, targetZoom);
     targetPoint.y += 20; // Menambah Y piksel akan menggeser pusat peta ke bawah (marker naik 20px)
@@ -357,27 +357,17 @@ function fokusKeMarker(latlng, keepCurrentZoom = false, durasi = 1.2) {
   let currentCenter = Map.getCenter();
   let currentZoom = Map.getZoom();
 
-  // Logika pencegah shaky / getar jika posisi sudah pas
+  // Logika pencegah shaky / getar jika posisi dan zoom sudah sangat pas
   if (currentZoom === targetZoom && currentCenter.distanceTo(koordinatAkhir) < 5) {
     return; 
   }
 
-  // --------------------------------========================================
-  // SOLUSI MUTLAK: JIKA ZOOM SAMA, GUNAKAN SETVIEW ANIMATE (MELUNCUR LANGSUNG)
-  // --------------------------------========================================
-  if (currentZoom === targetZoom) {
-    // setView dengan opsi animate akan menyeret peta secara langsung & lurus tanpa efek membal
-    Map.setView(koordinatAkhir, targetZoom, {
-      animate: true,
-      duration: durasi
-    });
-  } else {
-    // Jika tingkat zoom berbeda (misal dari jauh), tetap pakai flyTo agar efek terbangnya bekerja
-    Map.flyTo(koordinatAkhir, targetZoom, {
-      animate: true,
-      duration: durasi
-    });
-  }
+  // KEMBALI MENGGUNAKAN FLYTO UNTUK SEMUA INTERAKSI
+  // Jalur penerbangan melengkung akan dihitung dalam 1 gerakan utuh yang sangat smooth
+  Map.flyTo(koordinatAkhir, targetZoom, {
+    animate: true,
+    duration: durasi
+  });
 }
 
 function formatWikidataDate(dateString, precision) {
