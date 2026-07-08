@@ -346,23 +346,32 @@ function renderMapAndPanel() {
 // MODIFIKASI FUNGSI FOKUS: MENDUKUNG AKSI TETAP ZOOM & PERGESERAN LAYAR MOBILE
 // =========================================================================
 function fokusKeMarker(latlng, keepCurrentZoom = false, tanpaAnimasi = false) {
-  // Jika dari klik marker langsung (keepCurrentZoom = true), gunakan zoom saat ini
+  // TERCAPAI: Jika dari klik marker langsung (true), gunakan zoom saat ini. Jika false, paksa ke 14.
   let targetZoom = keepCurrentZoom ? Map.getZoom() : 14;
+  
+  // Siapkan variabel penampung koordinat akhir
+  let koordinatAkhir = latlng;
+
+  // JIKA MOBILE (Layar <= 800px): Geser kamera ke bawah 40px agar posisi marker naik ke atas
+  if (window.innerWidth <= 800) {
+    let targetPoint = Map.project(latlng, targetZoom);
+    targetPoint.y += 40; // Menambah Y piksel akan menggeser pusat peta ke bawah (marker naik ke atas)
+    koordinatAkhir = Map.unproject(targetPoint, targetZoom);
+  }
 
   let currentCenter = Map.getCenter();
   let currentZoom = Map.getZoom();
 
-  // Logika pencegah getar jika posisi sudah pas
-  if (currentZoom === targetZoom && currentCenter.distanceTo(latlng) < 5) {
+  // --- LOGIKA PENCEGAH SHAKY ---
+  if (currentZoom === targetZoom && currentCenter.distanceTo(koordinatAkhir) < 5) {
     return; 
   }
 
-  // JIKA DIKLIK DARI MARKER PETA (tanpaAnimasi = true), LANGSUNG PINDAH INSTAN
+  // Eksekusi perpindahan kamera ke koordinat akhir yang sudah disesuaikan
   if (tanpaAnimasi) {
-    Map.setView(latlng, targetZoom, { animate: false });
+    Map.setView(koordinatAkhir, targetZoom, { animate: false });
   } else {
-    // JIKA DIJALANKAN OLEH PLAY ATAU KLIK PANEL, TETAP PAKAI ANIMASI SINEMATIK
-    Map.flyTo(latlng, targetZoom, {
+    Map.flyTo(koordinatAkhir, targetZoom, {
       animate: true,
       duration: 1.2
     });
