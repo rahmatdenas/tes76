@@ -42,6 +42,73 @@ function renderMapAndPanel() {
   let kandidatIndexAktif = null; 
 
   // ==========================================
+  // [BARU] VARIABEL & LOGIKA AUTOPLAY
+  // ==========================================
+  let isPlaying = false;
+  let playInterval = null;
+  let playBtn = document.getElementById('play-btn');
+
+  function hentikanPlay() {
+    if (!isPlaying) return;
+    isPlaying = false;
+    clearInterval(playInterval);
+    if (playBtn) playBtn.innerHTML = '▶'; // Kembalikan ke ikon Play
+  }
+
+  function jalankanAnimasiSatuLangkah() {
+    // Lanjut ke marker berikutnya
+    let curIdx = parseInt(indexAktif === '-1' ? '-1' : indexAktif);
+    let nextIdx = curIdx + 1;
+
+    // Jika sudah mencapai akhir daftar, hentikan animasi
+    if (nextIdx >= TimelineRecords.length) {
+      hentikanPlay();
+      return;
+    }
+
+    let targetRecord = TimelineRecords[nextIdx];
+    if (targetRecord && targetRecord.marker) {
+      targetRecord.marker.openPopup();
+      fokusKeMarker(targetRecord.marker.getLatLng());
+
+      indexAktif = nextIdx.toString();
+
+      detailsContainer.classList.add('sedang-auto-scroll');
+      clearTimeout(jedaAutoScroll);
+      jedaAutoScroll = setTimeout(() => {
+        detailsContainer.classList.remove('sedang-auto-scroll');
+      }, 1200); 
+
+      let targetItem = document.getElementById(`item-${nextIdx}`);
+      if (targetItem) {
+        let scrollPos = targetItem.offsetTop - detailsContainer.offsetTop; 
+        if (scrollPos < 0) scrollPos = 0;
+        detailsContainer.scrollTo({ top: scrollPos, behavior: 'smooth' });
+      }
+    }
+  }
+
+  // Aktifkan event pada tombol Play
+  if (playBtn) {
+    // Hapus event lama jika fungsi ini dipanggil ulang
+    let newPlayBtn = playBtn.cloneNode(true);
+    playBtn.parentNode.replaceChild(newPlayBtn, playBtn);
+    playBtn = newPlayBtn;
+
+    playBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (isPlaying) {
+        hentikanPlay(); // Pengguna menekan Pause
+      } else {
+        isPlaying = true;
+        playBtn.innerHTML = '⏸'; // Ubah ikon ke Pause
+        jalankanAnimasiSatuLangkah(); // Jalan 1x langsung tanpa jeda awal
+        playInterval = setInterval(jalankanAnimasiSatuLangkah, 3000); // Jalan tiap 3 detik
+      }
+    });
+  }
+
+  // ==========================================
   // 1. RAKIT KONTEN HTML PANEL
   // ==========================================
   TimelineRecords.forEach((record, index) => {
@@ -77,7 +144,7 @@ function renderMapAndPanel() {
       record.marker = marker; 
       markerBounds.push([record.lat, record.lon]);
       
- let popupContent = `
+      let popupContent = `
         <div class="custom-popup">
           ${record.imageUrl ? `<img src="${record.imageUrl}"><br>` : ''}
           <strong class="popup-title">${record.locationName}</strong>
@@ -85,18 +152,19 @@ function renderMapAndPanel() {
         </div>
       `;
       
-marker.bindPopup(popupContent, { 
+      marker.bindPopup(popupContent, { 
         autoPan: false,
-        minWidth: 160, // Sesuaikan angkanya sesuai selera
-        maxWidth: 160  // Samakan dengan minWidth agar ukurannya statis
+        minWidth: 160, 
+        maxWidth: 160  
       });
       
       // Event saat Marker di Klik
       marker.on('click', function() {
-        
-fokusKeMarker(marker.getLatLng());
+        hentikanPlay(); // INTERUPSI: Berhenti otomatis saat di-klik manual
+
+        fokusKeMarker(marker.getLatLng());
         let indexStr = index.toString();
-        indexAktif = indexStr; // Sinkronkan memori
+        indexAktif = indexStr; 
 
         detailsContainer.classList.add('sedang-auto-scroll');
         clearTimeout(jedaAutoScroll);
@@ -105,7 +173,6 @@ fokusKeMarker(marker.getLatLng());
           detailsContainer.classList.remove('sedang-auto-scroll');
         }, 1200); 
 
-        // Gulir panel ke target yang diklik
         let targetItem = document.getElementById(`item-${index}`);
         setTimeout(function() {
           let scrollPos = targetItem.offsetTop - detailsContainer.offsetTop; 
@@ -127,13 +194,13 @@ fokusKeMarker(marker.getLatLng());
       let targetRecord = TimelineRecords[index];
 
       if (targetRecord && targetRecord.marker) {
-        // Geser peta
+        hentikanPlay(); // INTERUPSI: Berhenti otomatis saat judul di-klik
+
         targetRecord.marker.openPopup();
         fokusKeMarker(targetRecord.marker.getLatLng());
 
-        indexAktif = indexStr; // Sinkronkan memori
+        indexAktif = indexStr; 
 
-        // Gulir panel ke H2 yang sedang diklik
         detailsContainer.classList.add('sedang-auto-scroll');
         clearTimeout(jedaAutoScroll);
         
@@ -148,48 +215,38 @@ fokusKeMarker(marker.getLatLng());
     }
   });
 
-// ==========================================
+  // ==========================================
   // 4 & 5. SCROLLTELLING (Radar Posisi Presisi)
   // ==========================================
   detailsContainer.addEventListener('scroll', () => {
     
-    // Jika sistem yang sedang auto-scroll (karena klik), abaikan agar tidak bentrok
+    // Jika sistem yang auto-scroll, biarkan berjalan.
     if (detailsContainer.classList.contains('sedang-auto-scroll')) return;
+    
+    // INTERUPSI: Jika ini murni karena sentuhan/scroll pengguna, matikan play.
+    hentikanPlay(); 
     
     clearTimeout(jedaScroll);
     
-    // Timer 300ms: Hanya jalankan ini kalau scroll SUDAH BERHENTI TOTAL
     jedaScroll = setTimeout(() => {
-      
-      // 1. Buat "Garis Pemicu" di posisi 15% dari atas layar saat ini
-      // Artinya, elemen baru dianggap aktif kalau jaraknya sudah mencapai area ini
       let batasAktif = detailsContainer.scrollTop + (detailsContainer.clientHeight * 0.15); 
       
       let items = document.querySelectorAll('.timeline-item');
       let kandidatTerpilih = null;
 
-      // 2. Scan semua item dari atas ke bawah
       for (let i = 0; i < items.length; i++) {
         let item = items[i];
-        
-        // offsetTop adalah jarak asli elemen dari paling atas kontainer.
-        // Selama elemen masih berada di atas "Garis Pemicu", jadikan dia kandidat.
-        // Karena loop dari atas ke bawah, yang terakhir lolos pasti yang sedang dilihat.
         if (item.offsetTop <= batasAktif) {
           kandidatTerpilih = item.getAttribute('data-index');
         } else {
-          // Kalau sudah ketemu elemen yang posisinya di bawah garis pemicu,
-          // langsung HENTIKAN pencarian untuk menghemat memori (performa).
           break; 
         }
       }
 
-      // Jaga-jaga jika scroll mentok di paling atas (belum ada yang menyentuh batas)
       if (kandidatTerpilih === null && items.length > 0) {
         kandidatTerpilih = items[0].getAttribute('data-index');
       }
 
-      // 3. Tembak ke Peta! Jika kandidat berubah, perbarui peta.
       if (kandidatTerpilih !== null && kandidatTerpilih !== indexAktif) {
         indexAktif = kandidatTerpilih; 
         let indexAngka = parseInt(indexAktif);
@@ -200,7 +257,6 @@ fokusKeMarker(marker.getLatLng());
           fokusKeMarker(targetRecord.marker.getLatLng());
         }
       }
-      
     }, 300); 
 
   }, { passive: true });
@@ -211,7 +267,6 @@ fokusKeMarker(marker.getLatLng());
   document.getElementById('loading').style.display = 'none';
   detailsContainer.style.display = 'block';
 
-  // Sesuaikan zoom peta agar semua marker terlihat di awal
   if (markerBounds.length > 0) {
     Map.fitBounds(markerBounds, { padding: [40, 40] });
   }
