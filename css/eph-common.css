@@ -142,8 +142,8 @@ margin: 25px;
     transition: transform 0.2s;
     
     /* Ukuran mutlak tombol */
-    width: 32px;  
-    height: 32px; 
+    width: 42px;  
+    height: 42px; 
   }
 
   #play-btn:active {
