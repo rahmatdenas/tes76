@@ -6,7 +6,7 @@
   var MOBILE_QUERY   = '(max-width: 800px)';
   var DRAG_THRESHOLD = 5;  
 
-  var panel, header, toggleIcon, navMenu;
+var panel, header;
   var currentY       = 0;
   var dragging       = false;
   var moved          = false;
@@ -42,18 +42,9 @@ function getCollapsedY() {
     return Math.min(Math.max(y, getExpandedY()), getCollapsedY());
   }
 
-  function applyTransform(y) {
+function applyTransform(y) {
     currentY = y;
     panel.style.transform = 'translateY(' + y + 'px)';
-    
-    // Animasikan Ikon Panah
-    if (toggleIcon) {
-      if (y > getExpandedY() + 20) {
-        toggleIcon.style.transform = 'translateY(-50%) rotate(180deg)'; // Panah Atas
-      } else {
-        toggleIcon.style.transform = 'translateY(-50%) rotate(0deg)';   // Panah Bawah
-      }
-    }
   }
 
   window.setMobilePanelExpanded = function(expand, animate) {
@@ -146,7 +137,6 @@ if (detailsContainer) {
  window.addEventListener('load', function() {
     panel = document.getElementById('panel');
     header = document.getElementById('branding');
-    navMenu = document.querySelector('nav');
     if (!panel || !header) return;
 
     // 1. SUNTIKKAN DRAG HANDLE (GAGANG TIPIS) DI ATAS PANEL
