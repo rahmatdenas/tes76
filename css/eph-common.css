@@ -140,14 +140,22 @@ margin: 25px;
     justify-content: center;
     padding: 0;
     transition: transform 0.2s;
+    
+    /* Ukuran mutlak tombol */
     width: 32px;  
     height: 32px; 
   }
 
-  #play-btn svg {
-    display: block; 
+  #play-btn:active {
+    transform: translateY(-50%) scale(0.85); /* Sedikit diperhalus agar tidak terlalu lompat */
   }
 
+  /* --- TAMBAHAN BARU: Paksa ikon SVG memenuhi kotak --- */
+  #play-btn svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
 
 /* ==========================================================================
    POPUP PETA LEAFLET (Injeksi JS)
